@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VJ [YOUR NAME] | Live Visual Artist | Bangalore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050505;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, .glitch-text {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            animation: glitch-skew 1s infinite linear alternate-reverse;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--neon-pink);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--neon-cyan);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 15px, 0); }
+            20% { clip: rect(85px, 9999px, 95px, 0); }
+            40% { clip: rect(10px, 9999px, 65px, 0); }
+            60% { clip: rect(75px, 9999px, 25px, 0); }
+            80% { clip: rect(55px, 9999px, 85px, 0); }
+            100% { clip: rect(40px, 9999px, 60px, 0); }
+        }
+        
+        @keyframes glitch-anim2 {
+            0% { clip: rect(65px, 9999px, 95px, 0); }
+            20% { clip: rect(25px, 9999px, 55px, 0); }
+            40% { clip: rect(85px, 9999px, 15px, 0); }
+            60% { clip: rect(45px, 9999px, 75px, 0); }
+            80% { clip: rect(15px, 9999px, 35px, 0); }
+            100% { clip: rect(95px, 9999px, 65px, 0); }
+        }
+        
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            10% { transform: skew(-2deg); }
+            20% { transform: skew(2deg); }
+            30% { transform: skew(0deg); }
+            100% { transform: skew(0deg); }
+        }
+        
+        /* Scanline Effect */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            position: fixed;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 50;
+            opacity: 0.3;
+        }
+        
+        /* Neon Glow */
+        .neon-border {
+            box-shadow: 0 0 10px var(--neon-cyan),
+                        0 0 20px var(--neon-cyan),
+                        0 0 40px var(--neon-cyan);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px var(--neon-cyan),
+                         0 0 20px var(--neon-cyan);
+        }
+        
+        .neon-text-pink {
+            text-shadow: 0 0 10px var(--neon-pink),
+                         0 0 20px var(--neon-pink);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 4px;
+        }
+        
+        /* Video Grid Hover */
+        .video-card {
+            transition: all 0.3s ease;
+        }
+        .video-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .video-card:hover .play-overlay {
+            opacity: 1;
+        }
+        
+        /* Audio Visualizer Bars */
+        .bar {
+            width: 4px;
+            background: linear-gradient(to top, var(--neon-cyan), var(--neon-pink));
+            margin: 0 2px;
+            animation: equalize 1s infinite;
+        }
+        
+        @keyframes equalize {
+            0%, 100% { height: 20px; }
+            50% { height: 60px; }
+        }
+        
+        /* Noise Texture */
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 40;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        
+        /* Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Background Canvas -->
+    <div id="canvas-container"></div>
+    
+    <!-- Scanlines Overlay -->
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-md border-b border-cyan-500/30">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold tracking-wider glitch" data-text="VJ_[NAME]">VJ_[NAME]</div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#home" class="hover:text-cyan-400 transition-colors tracking-widest text-sm">HOME</a>
+                <a href="#visuals" class="hover:text-cyan-400 transition-colors tracking-widest text-sm">VISUALS</a>
+                <a href="#services" class="hover:text-cyan-400 transition-colors tracking-widest text-sm">SERVICES</a>
+                <a href="#setup" class="hover:text-cyan-400 transition-colors tracking-widest text-sm">SETUP</a>
+                <a href="#contact" class="hover:text-cyan-400 transition-colors tracking-widest text-sm">CONTACT</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden text-cyan-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black/95 border-b border-cyan-500/30">
+            <div class="flex flex-col p-6 space-y-4">
+                <a href="#home" class="text-cyan-400 tracking-widest">HOME</a>
+                <a href="#visuals" class="text-cyan-400 tracking-widest">VISUALS</a>
+                <a href="#services" class="text-cyan-400 tracking-widest">SERVICES</a>
+                <a href="#setup" class="text-cyan-400 tracking-widest">SETUP</a>
+                <a href="#contact" class="text-cyan-400 tracking-widest">CONTACT</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div class="container mx-auto px-6 text-center z-10">
+            <div class="mb-4 inline-block px-4 py-1 border border-cyan-500/50 rounded-full bg-cyan-500/10 backdrop-blur-sm">
+                <span class="text-cyan-400 text-sm tracking-[0.3em]">BANGALORE BASED VISUAL ARTIST</span>
+            </div>
+            
+            <h1 class="text-6xl md:text-8xl font-black mb-6 glitch neon-text" data-text="LIVE_VISUALS">
+                LIVE_VISUALS
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto font-light tracking-wide">
+                Transforming sound into sight. Creating immersive visual experiences for clubs, festivals, and events across India.
+            </p>
+            
+            <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+                <a href="#visuals" class="group relative px-8 py-4 bg-transparent border-2 border-cyan-400 text-cyan-400 font-bold tracking-widest overflow-hidden transition-all hover:text-black">
+                    <span class="absolute inset-0 w-full h-full bg-cyan-400 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
+                    <span class="relative z-10">VIEW WORK</span>
+                </a>
+                <a href="#contact" class="px-8 py-4 border-2 border-pink-500 text-pink-500 font-bold tracking-widest hover:bg-pink-500 hover:text-black transition-all">
+                    BOOK NOW
+                </a>
+            </div>
+
+            <!-- Live Status Indicator -->
+            <div class="mt-12 flex justify-center items-center gap-4">
+                <div class="flex items-center gap-2 px-4 py-2 bg-black/50 rounded-full border border-green-500/30">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-xs tracking-widest">AVAILABLE FOR BOOKINGS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Visual Elements -->
+        <div class="absolute bottom-10 left-10 hidden md:block">
+            <div class="flex items-end gap-1 h-16">
+                <div class="bar" style="animation-delay: 0s"></div>
+                <div class="bar" style="animation-delay: 0.1s"></div>
+                <div class="bar" style="animation-delay: 0.2s"></div>
+                <div class="bar" style="animation-delay: 0.3s"></div>
+                <div class="bar" style="animation-delay: 0.4s"></div>
+                <div class="bar" style="animation-delay: 0.5s"></div>
+                <div class="bar" style="animation-delay: 0.6s"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Marquee -->
+    <div class="bg-cyan-500/10 border-y border-cyan-500/30 py-4 overflow-hidden">
+        <div class="flex whitespace-nowrap animate-marquee">
+            <span class="text-2xl font-bold text-cyan-400/50 mx-8">TECHNO</span>
+            <span class="text-2xl font-bold text-pink-500/50 mx-8">HOUSE</span>
+            <span class="text-2xl font-bold text-purple-500/50 mx-8">DRUM & BASS</span>
+            <span class="text-2xl font-bold text-cyan-400/50 mx-8">VISUALS</span>
+            <span class="text-2xl font-bold text-pink-500/50 mx-8">PROJECTION MAPPING</span>
+            <span class="text-2xl font-bold text-purple-500/50 mx-8">LED WALLS</span>
+            <span class="text-2xl font-bold text-cyan-400/50 mx-8">BANGALORE</span>
+            <span class="text-2xl font-bold text-pink-500/50 mx-8">LIVE CODING</span>
+            <span class="text-2xl font-bold text-purple-500/50 mx-8">GENERATIVE ART</span>
+        </div>
+    </div>
+
+    <!-- Visuals/Work Section -->
+    <section id="visuals" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-6xl font-bold mb-4 text-center glitch" data-text="VISUAL_ARCHIVE">VISUAL_ARCHIVE</h2>
+            <p class="text-center text-gray-400 mb-12 tracking-widest">SELECTED WORKS & LIVE SETS</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Project 1 -->
+                <div class="video-card relative group cursor-pointer overflow-hidden rounded-lg border border-cyan-500/30 bg-black/50">
+                    <div class="aspect-video bg-gradient-to-br from-purple-900 to-cyan-900 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%2300f3ff\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+                        <div class="play-overlay absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity">
+                            <div class="w-16 h-16 rounded-full border-2 border-cyan-400 flex items-center justify-center">
+                                <div class="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-cyan-400 border-b-8 border-b-transparent ml-1"></div>
+                            </div>
+                        </div>
+                        <span class="text-6xl font-bold text-white/20">01</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-cyan-400 mb-1">CYBERPUNK NIGHTS</h3>
+                        <p class="text-sm text-gray-400">The Warehouse Project • Bangalore</p>
+                        <div class="mt-2 flex gap-2">
+                            <span class="text-xs px-2 py-1 border border-cyan-500/30 rounded text-cyan-400">Resolume</span>
+                            <span class="text-xs px-2 py-1 border border-pink-500/30 rounded text-pink-400">LED Wall</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="video-card relative group cursor-pointer overflow-hidden rounded-lg border border-pink-500/30 bg-black/50">
+                    <div class="aspect-video bg-gradient-to-br from-pink-900 to-purple-900 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ff00ff\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+                        <div class="play-overlay absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity">
+                            <div class="w-16 h-16 rounded-full border-2 border-pink-400 flex items-center justify-center">
+                                <div class="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-pink-400 border-b-8 border-b-transparent ml-1"></div>
+                            </div>
+                        </div>
+                        <span class="text-6xl font-bold text-white/20">02</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-pink-400 mb-1">NEON GARDEN</h3>
+                        <p class="text-sm text-gray-400">Sunburn Festival • Goa</p>
+                        <div class="mt-2 flex gap-2">
+                            <span class="text-xs px-2 py-1 border border-pink-500/30 rounded text-pink-400">TouchDesigner</span>
+                            <span class="text-xs px-2 py-1 border border-purple-500/30 rounded text-purple-400">Projection</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 3 -->
+                <div class="video-card relative group cursor-pointer overflow-hidden rounded-lg border border-purple-500/30 bg-black/50">
+                    <div class="aspect-video bg-gradient-to-br from-cyan-900 to-blue-900 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23bc13fe\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+                        <div class="play-overlay absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity">
+                            <div class="w-16 h-16 rounded-full border-2 border-purple-400 flex items-center justify-center">
+                                <div class="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-purple-400 border-b-8 border-b-transparent ml-1"></div>
+                            </div>
+                        </div>
+                        <span class="text-6xl font-bold text-white/20">03</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-purple-400 mb-1">QUANTUM LEAP</h3>
+                        <p class="text-sm text-gray-400">The Humming Tree • Bangalore</p>
+                        <div class="mt-2 flex gap-2">
+                            <span class="text-xs px-2 py-1 border border-purple-500/30 rounded text-purple-400">Notch</span>
+                            <span class="text-xs px-2 py-1 border border-cyan-500/30 rounded text-cyan-400">Live Cam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 4 -->
+                <div class="video-card relative group cursor-pointer overflow-hidden rounded-lg border border-cyan-500/30 bg-black/50">
+                    <div class="aspect-video bg-gradient-to-br from-gray-900 to-cyan-900 flex items-center justify-center relative overflow-hidden">
+                        <div class="play-overlay absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity">
+                            <div class="w-16 h-16 rounded-full border-2 border-cyan-400 flex items-center justify-center">
+                                <div class="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-cyan-400 border-b-8 border-b-transparent ml-1"></div>
+                            </div>
+                        </div>
+                        <span class="text-6xl font-bold text-white/20">04</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-cyan-400 mb-1">SYSTEM FAILURE</h3>
+                        <p class="text-sm text-gray-400">Koramangala Social • Bangalore</p>
+                        <div class="mt-2 flex gap-2">
+                            <span class="text-xs px-2 py-1 border border-cyan-500/30 rounded text-cyan-400">Resolume</span>
+                            <span class="text-xs px-2 py-1 border border-pink-500/30 rounded text-pink-400">TV Setup</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 5 -->
+                <div class="video-card relative group cursor-pointer overflow-hidden rounded-lg border border-pink-500/30 bg-black/50">
+                    <div class="aspect-video bg-gradient-to-br from-red-900 to-pink-900 flex items-center justify-center relative overflow-hidden">
+                        <div class="play-overlay absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity">
+                            <div class="w-16 h-16 rounded-full border-2 border-pink-400 flex items-center justify-center">
+                                <div class="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-pink-400 border-b-8 border-b-transparent ml-1"></div>
+                            </div>
+                        </div>
+                        <span class="text-6xl font-bold text-white/20">05</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-pink-400 mb-1">ACID RAIN</h3>
+                        <p class="text-sm text-gray-400">Indiranagar Pub Crawl</p>
+                        <div class="mt-2 flex gap-2">
+                            <span class="text-xs px-2 py-1 border border-pink-500/30 rounded text-pink-400">TouchDesigner</span>
+                            <span class="text-xs px-2 py-1 border border-purple-500/30 rounded text-purple-400">Reactive</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 6 -->
+                <div class="video-card relative group cursor-pointer overflow-hidden rounded-lg border border-purple-500/30 bg-black/50">
+                    <div class="aspect-video bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center relative overflow-hidden">
+                        <div class="play-overlay absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 transition-opacity">
+                            <div class="w-16 h-16 rounded-full border-2 border-purple-400 flex items-center justify-center">
+                                <div class="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-purple-400 border-b-8 border-b-transparent ml-1"></div>
+                            </div>
+                        </div>
+                        <span class="text-6xl font-bold text-white/20">06</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold text-purple-400 mb-1">VOID WALKER</h3>
+                        <p class="text-sm text-gray-400">Private Rave • Electronic City</p>
+                        <div class="mt-2 flex gap-2">
+                            <span class="text-xs px-2 py-1 border border-purple-500/30 rounded text-purple-400">MadMapper</span>
+                            <span class="text-xs px-2 py-1 border border-cyan-500/30 rounded text-cyan-400">3D</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <button class="px-8 py-3 border border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all tracking-widest">
+                    LOAD MORE ARCHIVES
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 bg-black/50 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--neon-cyan)_0%,_transparent_70%)] opacity-5"></div>
+        <div class="container mx-auto px-6 relative z-10">
+            <h2 class="text-4xl md:text-6xl font-bold mb-12 text-center glitch" data-text="SERVICES">SERVICES</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="group p-8 border border-cyan-500/30 bg-black/40 hover:bg-cyan-500/10 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-bl-full"></div>
+                    <div class="text-4xl mb-4 text-cyan-400">01</div>
+                    <h3 class="text-2xl font-bold mb-4 text-white group-hover:text-cyan-400 transition-colors">LIVE VJ SETS</h3>
+                    <p class="text-gray-400 mb-6">Real-time visual performance synced to music. From underground techno to commercial EDM, adapted to your event's energy.</p>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li class="flex items-center gap-2"><span class="text-cyan-400">></span> Resolume Arena</li>
+                        <li class="flex items-center gap-2"><span class="text-cyan-400">></span> TouchDesigner</li>
+                        <li class="flex items-center gap-2"><span class="text-cyan-400">></span> MIDI/OSC Sync</li>
+                    </ul>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="group p-8 border border-pink-500/30 bg-black/40 hover:bg-pink-500/10 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-pink-500/10 rounded-bl-full"></div>
+                    <div class="text-4xl mb-4 text-pink-400">02</div>
+                    <h3 class="text-2xl font-bold mb-4 text-white group-hover:text-pink-400 transition-colors">CONTENT CREATION</h3>
+                    <p class="text-gray-400 mb-6">Custom loops, visuals, and branding materials. Logo animations, stage designs, and promotional content.</p>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li class="flex items-center gap-2"><span class="text-pink-400">></span> After Effects</li>
+                        <li class="flex items-center gap-2"><span class="text-pink-400">></span> Cinema 4D</li>
+                        <li class="flex items-center gap-2"><span class="text-pink-400">></span> Blender</li>
+                    </ul>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="group p-8 border border-purple-500/30 bg-black/40 hover:bg-purple-500/10 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-bl-full"></div>
+                    <div class="text-4xl mb-4 text-purple-400">03</div>
+                    <h3 class="text-2xl font-bold mb-4 text-white group-hover:text-purple-400 transition-colors">TECHNICAL SETUP</h3>
+                    <p class="text-gray-400 mb-6">Complete visual infrastructure setup. LED walls, projection mapping, and technical consultation for venues.</p>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li class="flex items-center gap-2"><span class="text-purple-400">></span> Projection Mapping</li>
+                        <li class="flex items-center gap-2"><span class="text-purple-400">></span> LED Configuration</li>
+                        <li class="flex items-center gap-2"><span class="text-purple-400">></span> System Design</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Setup Section -->
+    <section id="setup" class="py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl md:text-6xl font-bold mb-12 text-center glitch" data-text="TECH_RIDER">TECH_RIDER</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="border-l-4 border-cyan-400 pl-6 py-2">
+                        <h3 class="text-2xl font-bold text-cyan-400 mb-2">HARDWARE</h3>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>• MacBook Pro M3 Max / Razer Blade 15</li>
+                            <li>• Akai APC40 MKII MIDI Controller</li>
+                            <li>• Pioneer DJM-900NXS2 (Video Input)</li>
+                            <li>• Blackmagic Design UltraStudio</li>
+                            <li>• Custom Resolume Server Setup</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="border-l-4 border-pink-400 pl-6 py-2">
+                        <h3 class="text-2xl font-bold text-pink-400 mb-2">SOFTWARE</h3>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>• Resolume Arena 7 (Primary)</li>
+                            <li>• TouchDesigner (Generative)</li>
+                            <li>• MadMapper (Projection)</li>
+                            <li>• Notch (Real-time 3D)</li>
+                            <li>• Adobe Creative Suite</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="border-l-4 border-purple-400 pl-6 py-2">
+                        <h3 class="text-2xl font-bold text-purple-400 mb-2">OUTPUT</h3>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>• Up to 4K @ 60fps</li>
+                            <li>• Multiple Output Support</li>
+                            <li>• SDI/HDMI/DVI Compatible</li>
+                            <li>• Network Streaming Capable</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="aspect-square rounded-lg bg-gradient-to-br from-gray-900 to-black border border-cyan-500/30 p-8 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(0,243,255,0.1)_0%,_transparent_50%)]"></div>
+                        <div class="text-center z-10">
+                            <div class="text-6xl font-bold mb-4 neon-text">4K</div>
+                            <div class="text-xl tracking-widest text-gray-400">READY</div>
+                            <div class="mt-8 grid grid-cols-3 gap-4 text-xs">
+                                <div class="p-2 border border-cyan-500/30 rounded">60 FPS</div>
+                                <div class="p-2 border border-pink-500/30 rounded">LOW LATENCY</div>
+                                <div class="p-2 border border-purple-500/30 rounded">SYNCED</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-black/80 relative">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <h2 class="text-4xl md:text-6xl font-bold mb-4 text-center glitch" data-text="INITIATE_CONTACT">INITIATE_CONTACT</h2>
+            <p class="text-center text-gray-400 mb-12">Ready to elevate your event? Let's create something visual.</p>
+            
+            <form class="space-y-6" onsubmit="event.preventDefault(); alert('Message sent! (Demo only)');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="relative">
+                        <input type="text" placeholder="NAME" class="w-full bg-black/50 border border-cyan-500/30 p-4 text-white focus:border-cyan-400 focus:outline-none transition-colors placeholder-gray-600">
+                    </div>
+                    <div class="relative">
+                        <input type="email" placeholder="EMAIL" class="w-full bg-black/50 border border-cyan-500/30 p-4 text-white focus:border-cyan-400 focus:outline-none transition-colors placeholder-gray-600">
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <input type="text" placeholder="EVENT TYPE (Club Night / Festival / Corporate)" class="w-full bg-black/50 border border-cyan-500/30 p-4 text-white focus:border-cyan-400 focus:outline-none transition-colors placeholder-gray-600">
+                </div>
+                
+                <div class="relative">
+                    <textarea rows="5" placeholder="TELL ME ABOUT YOUR EVENT..." class="w-full bg-black/50 border border-cyan-500/30 p-4 text-white focus:border-cyan-400 focus:outline-none transition-colors placeholder-gray-600"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full py-4 bg-cyan-500/20 border border-cyan-400 text-cyan-400 font-bold tracking-widest hover:bg-cyan-400 hover:text-black transition-all duration-300 uppercase">
+                    Transmit Message
+                </button>
+            </form>
+            
+            <div class="mt-12 flex flex-col md:flex-row justify-center items-center gap-8 text-sm text-gray-500">
+                <a href="mailto:your.email@example.com" class="flex items-center gap-2 hover:text-cyan-400 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    your.email@example.com
+                </a>
+                <a href="tel:+919999999999" class="flex items-center gap-2 hover:text-cyan-400 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    +91 99999 99999
+                </a>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Bangalore, India
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-cyan-500/30 py-8">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-2xl font-bold tracking-wider mb-4 md:mb-0 glitch" data-text="VJ_[NAME]">VJ_[NAME]</div>
+            <div class="flex gap-6">
+                <a href="#" class="text-gray-400 hover:text-cyan-400 transition-colors">Instagram</a>
+                <a href="#" class="text-gray-400 hover:text-cyan-400 transition-colors">YouTube</a>
+                <a href="#" class="text-gray-400 hover:text-cyan-400 transition-colors">Behance</a>
+                <a href="#" class="text-gray-400 hover:text-cyan-400 transition-colors">Vimeo</a>
+            </div>
+        </div>
+        <div class="text-center mt-6 text-xs text-gray-600 tracking-widest">
+            © 2024 VJ [YOUR NAME]. ALL SYSTEMS OPERATIONAL.
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Three.js Background Animation
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Create particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i += 3) {
+            // Position
+            posArray[i] = (Math.random() - 0.5) * 50;
+            posArray[i+1] = (Math.random() - 0.5) * 50;
+            posArray[i+2] = (Math.random() - 0.5) * 50;
+            
+            // Color (cyan, pink, purple mix)
+            const colorChoice = Math.random();
+            if(colorChoice < 0.33) {
+                colorArray[i] = 0;     // R
+                colorArray[i+1] = 0.95; // G (cyan)
+                colorArray[i+2] = 1;   // B
+            } else if(colorChoice < 0.66) {
+                colorArray[i] = 1;     // R (pink)
+                colorArray[i+1] = 0;   // G
+                colorArray[i+2] = 1;   // B
+            } else {
+                colorArray[i] = 0.74;  // R (purple)
+                colorArray[i+1] = 0.05; // G
+                colorArray[i+2] = 1;   // B
+            }
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.05,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 30;
+
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.0005;
+
+            // Mouse interaction
+            particlesMesh.rotation.y += mouseX * 0.05;
+            particlesMesh.rotation.x += mouseY * 0.05;
+
+            // Pulse effect
+            const time = Date.now() * 0.001;
+            particlesMesh.scale.setScalar(1 + Math.sin(time) * 0.05);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Glitch text randomizer
+        const glitchTexts = document.querySelectorAll('.glitch');
+        setInterval(() => {
+            glitchTexts.forEach(el => {
+                if(Math.random() > 0.95) {
+                    el.style.animation = 'none';
+                    setTimeout(() => {
+                        el.style.animation = '';
+                    }, 100);
+                }
+            });
+        }, 2000);
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if(target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = "1";
+                    entry.target.style.transform = "translateY(0)";
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.video-card, .group').forEach((el, index) => {
+            el.style.opacity = "0";
+            el.style.transform = "translateY(20px)";
+            el.style.transition = `all 0.6s ease ${index * 0.1}s`;
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
